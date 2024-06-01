@@ -17,6 +17,7 @@
             go
             go-tools
             gopls
+            air
           ];
           # Shell hook to symlink discord-ipc as every discord presence solution looks for TMPDIR on macos (Manually created symlink to `projects` folder only works for me)
           shellHook = ''
