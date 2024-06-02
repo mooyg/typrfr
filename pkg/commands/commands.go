@@ -2,28 +2,31 @@ package commands
 
 import (
 	"fmt"
-	"typrfr/pkg/tcp"
 )
+
+type TCPCommand struct {
+	Command byte
+	Data    []byte
+}
 
 const (
 	WELCOME = iota
-	CREATE_USER
-	CREATE_ROOM
-	JOIN_ROOM
+	START
 )
 
-var commandMap = map[byte]string{
-	WELCOME:     "welcome",
-	CREATE_USER: "createUser",
-	CREATE_ROOM: "createRoom",
-	JOIN_ROOM:   "joinRoom",
-}
-
-func GetCommandByByte(b byte) (cmd *tcp.TCPCommand, err error) {
-	if _, ok := commandMap[b]; ok {
-		return &tcp.TCPCommand{
-			Command: b,
+func Command(cmd byte, data []byte) (tcmd *TCPCommand, err error) {
+	switch cmd {
+	case WELCOME:
+		return &TCPCommand{
+			Command: WELCOME,
+			Data:    data,
 		}, nil
+	case START:
+		return &TCPCommand{
+			Command: START,
+			Data:    data,
+		}, nil
+	default:
+		return nil, fmt.Errorf("missing command")
 	}
-	return nil, fmt.Errorf("missing command")
 }

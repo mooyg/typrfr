@@ -1,10 +1,10 @@
 package tcp
 
 import (
+	"bufio"
 	"log/slog"
 	"net"
 	"typrfr/pkg/commands"
-	"typrfr/pkg/tcp"
 )
 
 type Connection struct {
@@ -25,12 +25,25 @@ func (c *Connection) Close() {
 	c.conn.Close()
 }
 
-func (c *Connection) ReadCommand(cmd byte) (tcmd *tcp.TCPCommand, err error) {
-	slog.Info("rcvd", "val", string(cmd))
-	return commands.GetCommandByByte(cmd)
+func (c *Connection) ParseMessage(tmp []byte) {
+
+	if len(tmp) == 0 {
+		slog.Error("rcvd invalid data")
+		return
+	}
+
+	// Ignore \n from the data
+
+	cmd, err := commands.Command(tmp[0], tmp[1:len(tmp)-1])
+
+	if err != nil {
+		slog.Error("no valid command found")
+	}
+	slog.Info("data rcvd with command", "data", string(cmd.Data))
 }
-func (c *Connection) Read(tmp []byte) (n int, err error) {
-	return c.conn.Read(tmp)
+
+func (c *Connection) Read() (data string, err error) {
+	return bufio.NewReader(c.conn).ReadString('\n')
 }
 func (c *Connection) Write(s string) (n int, err error) {
 	return c.conn.Write([]byte(s))

@@ -7,11 +7,6 @@ import (
 	"net"
 )
 
-type TCPCommand struct {
-	Command byte
-	Data    []byte
-}
-
 type TCP struct {
 	listener net.Listener
 	sockets  []Connection
@@ -70,18 +65,11 @@ func handleConnection(c *Connection) {
 	defer c.Close()
 
 	for {
-		n, err := c.Read(tmp)
+		data, err := c.Read()
 
-		_, err := c.ReadCommand(tmp[0])
+		c.ParseMessage([]byte(data))
 
-		if err != nil {
-			slog.Error("no valid command sent")
-			break
-		}
-
-		c.previous = append(c.previous, tmp...)
-
-		slog.Info("num of bytes", "n", n)
+		slog.Info("num of bytes", "n", len(data))
 
 		if err != nil {
 
@@ -93,6 +81,7 @@ func handleConnection(c *Connection) {
 
 			break
 		}
+
 		packet = append(packet, tmp...)
 
 	}
