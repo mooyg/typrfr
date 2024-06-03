@@ -1,38 +1,27 @@
 package main
 
 import (
-	"fmt"
-	"typrfr/cmd/processor"
-
-	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"typrfr/cmd/processor"
+	"typrfr/cmd/ui"
 )
 
-const demoText = `Hello world`
-
 func main() {
+	game := processor.NewGame()
 	app := tview.NewApplication()
-	words := processor.ConstructWords(demoText)
-	textArea := tview.NewTextArea().SetPlaceholder("Start Typing...")
 
-	// Divide each letter into regions.
-	textView := tview.NewTextView().SetText(demoText)
+	ui.Render(game, app)
+	// Pass the not started state initially
+	game.State <- processor.NOT_STARTED
 
-	currIndex := 0
-	textArea.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		//TODO: Get the event here and highlight the text view
-		processor.ProcessTyping(event, words, currIndex)
-		if event.Rune() == 32 {
-			fmt.Fprintf(textView, "Recieved  %s", string(words[currIndex].ProvidedText))
-			currIndex++
+	for {
+		msg := <-game.State
+		switch msg {
+		case processor.IN_PROGRESS:
+			ui.Render(game, app)
+			break
+		default:
+			break
 		}
-
-		return event
-	})
-
-	container := tview.NewFlex().SetDirection(tview.FlexRow).AddItem(textView, 0, 1, false).AddItem(textArea, 0, 1, true)
-
-	if err := app.SetRoot(container, true).EnableMouse(true).Run(); err != nil {
-		panic(err)
 	}
 }
