@@ -12,7 +12,7 @@ const demoText = "Hello world"
 type State int
 type Game struct {
 	Sentence    string
-	State       chan State
+	State       State
 	CurrentWord Word
 	Words       []Word
 }
@@ -24,32 +24,32 @@ const (
 )
 
 func NewGame() *Game {
-	stateChannel := make(chan State)
-
 	slog.Info("new game...")
 
 	return &Game{
 		Sentence: demoText,
-		State:    stateChannel,
+		State:    NOT_STARTED,
 	}
 }
 
-func (g *Game) HasFinished() chan<- State {
+func (g *Game) HasFinished() State {
 	return g.State
 }
 
 func (g *Game) StartGame() *Game {
-	g.State <- IN_PROGRESS
+	g.State = IN_PROGRESS
+	// Construct words from a sentence
+	g.ConstructWords()
 	return g
 }
 
 func (g *Game) EndGame() *Game {
-	g.State <- FINISHED
+	g.State = FINISHED
 	return g
 }
 
-func (g *Game) ConstructWords(s string) []Word {
-	words := strings.Split(s, " ")
+func (g *Game) ConstructWords() []Word {
+	words := strings.Split(g.Sentence, " ")
 	constructedWords := make([]Word, 0, len(words))
 
 	for _, v := range words {
