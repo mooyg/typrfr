@@ -7,10 +7,22 @@ import (
 )
 
 func (ui *UI) showGameStartUI() {
-	button := tview.NewButton("Hit enter to start typing").SetSelectedFunc(func() {
-		ui.game.StartGame()
-		ui.showScreen(processor.IN_PROGRESS)
+
+	dropdown := tview.NewDropDown().SetLabel("Select an option (hit Enter)").SetOptions([]string{"Create room", "Join room", "Offline mode"}, func(text string, index int) {
+		switch index {
+		case 0:
+			game := processor.CreateRoom()
+			ui.game = game
+		case 1:
+
+		case 2:
+			game := processor.NewLocalGame()
+			ui.game = game
+			ui.game.StartGame()
+			ui.showInprogressUI()
+
+		}
 	})
 
-	ui.app.SetRoot(button, true)
+	ui.app.SetRoot(dropdown, true)
 }

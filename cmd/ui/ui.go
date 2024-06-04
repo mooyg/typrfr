@@ -1,9 +1,8 @@
 package ui
 
 import (
-	"typrfr/cmd/processor"
-
 	"github.com/rivo/tview"
+	"typrfr/cmd/processor"
 )
 
 type UI struct {
@@ -20,15 +19,15 @@ func (ui *UI) showScreen(state processor.State) {
 	}
 }
 
-func Init(game *processor.Game) *UI {
+func Init() *UI {
 	return &UI{
-		app:  tview.NewApplication(),
-		game: game,
+		app: tview.NewApplication(),
 	}
 }
 
 func (ui *UI) Run() {
 	ui.showScreen(processor.NOT_STARTED)
+
 	if err := ui.app.Run(); err != nil {
 		panic(err)
 	}

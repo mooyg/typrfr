@@ -13,6 +13,7 @@ import (
 )
 
 type State int
+
 type Game struct {
 	Sentence    string
 	State       State
@@ -35,7 +36,6 @@ type Data struct {
 }
 
 func NewLocalGame() *Game {
-	slog.Info("new game...")
 	content, err := os.ReadFile("para.json")
 
 	if err != nil {
@@ -74,7 +74,9 @@ func CreateRoom() *Game {
 		slog.Error("some error occured while reading data on the client")
 		os.Exit(1)
 	}
+
 	slog.Info("data returned", "data", data)
+
 	text := "Hello world"
 
 	return &Game{
