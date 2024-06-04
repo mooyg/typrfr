@@ -18,9 +18,12 @@ func (ui *UI) showInprogressUI() {
 	layout := tview.NewFlex().SetDirection(tview.FlexRow).AddItem(nav, 0, 1, false).AddItem(content, 0, 1, true)
 
 	ui.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		ui.game.ProcessTyping(event)
-		if ui.game.HasFinished() == processor.FINISHED {
-			ui.showFinishedUI()
+		if ui.game.State == processor.IN_PROGRESS {
+			ui.game.ProcessTyping(event)
+			if ui.game.HasFinished() == processor.FINISHED {
+				ui.showFinishedUI()
+			}
+
 		}
 		return event
 	})

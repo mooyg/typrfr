@@ -1,20 +1,24 @@
 package processor
 
 import (
+	"encoding/json"
 	"github.com/gdamore/tcell/v2"
 	"log/slog"
+	"math/rand"
+	"os"
 	"strings"
+	"time"
 )
-
-const demoText = "Hello world"
 
 type State int
 type Game struct {
 	Sentence    string
 	State       State
-	StringTyped string
 	Index       int
 	Chars       []string
+	timeStarted time.Time
+	timeEnded   time.Time
+	TotalTime   string
 }
 
 const (
@@ -23,14 +27,32 @@ const (
 	FINISHED
 )
 
-func NewGame() *Game {
+type Data struct {
+	Id   int
+	Para string
+}
+
+func NewLocalGame() *Game {
 	slog.Info("new game...")
+	content, err := os.ReadFile("para.json")
+
+	if err != nil {
+		slog.Error("error while opening the file", "err", err)
+	}
+	var payload []Data
+	err = json.Unmarshal(content, &payload)
+
+	if err != nil {
+		slog.Error("error during unmarshal()", "err", err)
+	}
+
+	text := payload[rand.Intn(len(payload))].Para
 
 	return &Game{
-		Sentence: demoText,
+		Sentence: text,
 		State:    NOT_STARTED,
 		Index:    0,
-		Chars:    strings.Split(demoText, ""),
+		Chars:    strings.Split(text, ""),
 	}
 }
 
@@ -40,6 +62,7 @@ func (g *Game) HasFinished() State {
 
 func (g *Game) StartGame() *Game {
 	g.State = IN_PROGRESS
+	g.timeStarted = time.Now()
 	return g
 }
 
@@ -56,7 +79,11 @@ func (g *Game) ProcessTyping(event *tcell.EventKey) {
 		// TODO: highlight error
 		slog.Info("highlight error here.")
 	}
+
 	if g.Index == len(g.Chars) {
+		g.timeEnded = time.Now()
+
+		g.TotalTime = g.timeEnded.Sub(g.timeStarted).String()
 		g.State = FINISHED
 		return
 	}
