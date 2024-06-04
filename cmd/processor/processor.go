@@ -1,10 +1,9 @@
 package processor
 
 import (
+	"github.com/gdamore/tcell/v2"
 	"log/slog"
 	"strings"
-
-	"github.com/gdamore/tcell/v2"
 )
 
 const demoText = "Hello world"
@@ -13,8 +12,9 @@ type State int
 type Game struct {
 	Sentence    string
 	State       State
-	CurrentWord Word
-	Words       []Word
+	StringTyped string
+	Index       int
+	Chars       []string
 }
 
 const (
@@ -29,6 +29,8 @@ func NewGame() *Game {
 	return &Game{
 		Sentence: demoText,
 		State:    NOT_STARTED,
+		Index:    0,
+		Chars:    strings.Split(demoText, ""),
 	}
 }
 
@@ -38,8 +40,6 @@ func (g *Game) HasFinished() State {
 
 func (g *Game) StartGame() *Game {
 	g.State = IN_PROGRESS
-	// Construct words from a sentence
-	g.ConstructWords()
 	return g
 }
 
@@ -48,30 +48,17 @@ func (g *Game) EndGame() *Game {
 	return g
 }
 
-func (g *Game) ConstructWords() []Word {
-	words := strings.Split(g.Sentence, " ")
-	constructedWords := make([]Word, 0, len(words))
+func (g *Game) ProcessTyping(event *tcell.EventKey) {
 
-	for _, v := range words {
-		constructedWords = append(constructedWords, Word{
-			ExpectedText: v,
-			ProvidedText: []byte(""),
-			Letters:      strings.Split(v, ""),
-		})
+	if string(event.Rune()) == g.Chars[g.Index] {
+		g.Index = g.Index + 1
+	} else {
+		// TODO: highlight error
+		slog.Info("highlight error here.")
+	}
+	if g.Index == len(g.Chars) {
+		g.State = FINISHED
+		return
 	}
 
-	g.Words = constructedWords
-
-	return g.Words
-}
-
-// TODO: Use a better Data Structure maybe
-type Word struct {
-	ExpectedText string
-	ProvidedText []byte
-	Letters      []string
-}
-
-func ProcessTyping(event *tcell.EventKey, words []Word, currIndex int) {
-	words[currIndex].ProvidedText = append(words[currIndex].ProvidedText, []byte(event.Name())...)
 }
