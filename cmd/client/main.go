@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	game := processor.NewLocalGame()
+	game := processor.CreateRoom()
 	ui := ui.Init(game)
 	ui.Run()
 }

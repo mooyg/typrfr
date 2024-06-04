@@ -21,7 +21,6 @@ func CreateServer(port uint16) (*tcp.TCP, error) {
 }
 
 func JoinServer() net.Conn {
-
 	conn, err := net.DialTCP("tcp", nil, &net.TCPAddr{
 		Port: 5555,
 	})

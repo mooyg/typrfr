@@ -12,6 +12,11 @@ type TCP struct {
 	sockets  []Connection
 }
 
+type TCPCommand struct {
+	Command byte
+	Data    []byte
+}
+
 func NewTCPServer(port uint16) (*TCP, error) {
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
@@ -47,8 +52,6 @@ func (t *TCP) Start() {
 		id++
 
 		t.sockets = append(t.sockets, newConn)
-
-		newConn.Write("Hello world!")
 
 		slog.Info("New connection", "id", newConn.Id)
 		slog.Info("total sockets", "len", len(t.sockets))

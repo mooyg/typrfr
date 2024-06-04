@@ -8,6 +8,8 @@ import (
 	"os"
 	"strings"
 	"time"
+	"typrfr/cmd/tcpclient"
+	"typrfr/pkg/tcp"
 )
 
 type State int
@@ -47,6 +49,33 @@ func NewLocalGame() *Game {
 	}
 
 	text := payload[rand.Intn(len(payload))].Para
+
+	return &Game{
+		Sentence: text,
+		State:    NOT_STARTED,
+		Index:    0,
+		Chars:    strings.Split(text, ""),
+	}
+}
+
+func CreateRoom() *Game {
+	slog.Info("new game through tcp...")
+
+	conn := tcpclient.New()
+	s := []byte("some\n")
+
+	input := append([]byte{tcp.CREATE_ROOM}, s...)
+
+	conn.Write(input)
+
+	data, err := conn.Read()
+
+	if err != nil {
+		slog.Error("some error occured while reading data on the client")
+		os.Exit(1)
+	}
+	slog.Info("data returned", "data", data)
+	text := "Hello world"
 
 	return &Game{
 		Sentence: text,

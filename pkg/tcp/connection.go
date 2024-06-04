@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"log/slog"
 	"net"
-	"typrfr/pkg/commands"
 )
 
 type Connection struct {
@@ -32,14 +31,9 @@ func (c *Connection) ParseMessage(tmp []byte) {
 		return
 	}
 
-	// Ignore \n from the data
-
-	cmd, err := commands.Command(tmp[0], tmp[1:len(tmp)-1])
-
-	if err != nil {
-		slog.Error("no valid command found")
-	}
-	slog.Info("data rcvd with command", "data", string(cmd.Data))
+	slog.Info("rcvd message", "msg", string(tmp))
+	// Ignore EOL from the data
+	RunCommand(tmp[0], tmp[1:len(tmp)-1], c)
 }
 
 func (c *Connection) Read() (data string, err error) {
