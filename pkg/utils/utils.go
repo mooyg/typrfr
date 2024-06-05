@@ -33,3 +33,14 @@ func GenText() string {
 	text := payload[rand.Intn(len(payload))].Para
 	return text
 }
+
+func Unmarshal[T any](data []byte) T {
+	var val T
+	err := json.Unmarshal(data, &val)
+	if err != nil {
+		slog.Error("some error occured while unmarshalling")
+		os.Exit(2)
+	}
+	return val
+
+}

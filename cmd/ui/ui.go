@@ -14,6 +14,10 @@ func (ui *UI) showScreen(state processor.State) {
 	switch state {
 	case processor.NOT_STARTED:
 		ui.showGameStartUI()
+	case processor.JOIN_ROOM:
+		ui.showJoinRoomUI()
+	case processor.WAITING_ROOM:
+		ui.showWaitingRoomUI()
 	case processor.IN_PROGRESS:
 		ui.showInprogressUI()
 	}

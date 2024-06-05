@@ -12,11 +12,6 @@ type TCP struct {
 	sockets  []Connection
 }
 
-type TCPCommand struct {
-	Command byte
-	Data    []byte
-}
-
 func NewTCPServer(port uint16) (*TCP, error) {
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
@@ -88,8 +83,6 @@ func handleConnection(c *Connection) {
 		packet = append(packet, tmp...)
 
 	}
-
-	c.Write(string(packet))
 
 	fmt.Println("Received message:", string(packet))
 }

@@ -2,7 +2,6 @@ package processor
 
 import (
 	"encoding/json"
-	"github.com/gdamore/tcell/v2"
 	"log/slog"
 	"math/rand"
 	"os"
@@ -10,10 +9,17 @@ import (
 	"time"
 	"typrfr/cmd/tcpclient"
 	"typrfr/pkg/tcp"
+	"typrfr/pkg/utils"
+
+	"github.com/gdamore/tcell/v2"
 )
 
 type State int
-
+type Room struct {
+	Id          int
+	Text        string
+	Connections []*tcp.Connection
+}
 type Game struct {
 	Sentence    string
 	State       State
@@ -22,10 +28,14 @@ type Game struct {
 	timeStarted time.Time
 	timeEnded   time.Time
 	TotalTime   string
+	Room        Room
+	conn        *tcpclient.TCPClient
 }
 
 const (
 	NOT_STARTED State = iota
+	JOIN_ROOM         // Skipped if created a room
+	WAITING_ROOM
 	IN_PROGRESS
 	FINISHED
 )
@@ -59,9 +69,9 @@ func NewLocalGame() *Game {
 }
 
 func CreateRoom() *Game {
-	slog.Info("new game through tcp...")
 
 	conn := tcpclient.New()
+
 	s := []byte("some\n")
 
 	input := append([]byte{tcp.CREATE_ROOM}, s...)
@@ -71,19 +81,50 @@ func CreateRoom() *Game {
 	data, err := conn.Read()
 
 	if err != nil {
-		slog.Error("some error occured while reading data on the client")
-		os.Exit(1)
+		slog.Error("error while reading data from the client")
+		os.Exit(2)
 	}
-
-	slog.Info("data returned", "data", data)
-
-	text := "Hello world"
+	room := utils.Unmarshal[tcp.TCPCommand[Room]](data)
 
 	return &Game{
-		Sentence: text,
-		State:    NOT_STARTED,
+		Sentence: room.Data.Text,
+		State:    WAITING_ROOM,
 		Index:    0,
-		Chars:    strings.Split(text, ""),
+		Chars:    strings.Split(room.Data.Text, ""),
+		Room:     room.Data,
+		conn:     conn,
+	}
+}
+
+func JoinRoom(id string) *Game {
+
+	conn := tcpclient.New()
+
+	s := append([]byte(id), '\n')
+	input := append([]byte{tcp.JOIN_ROOM}, s...)
+
+	conn.Write(input)
+
+	data, err := conn.Read()
+
+	if err != nil {
+		slog.Error("error occured while joining a room")
+		os.Exit(2)
+	}
+
+	room := utils.Unmarshal[tcp.TCPCommand[Room]](data)
+
+	if room.Command == tcp.ERROR {
+		return nil
+	}
+
+	return &Game{
+		Sentence: room.Data.Text,
+		State:    WAITING_ROOM,
+		Index:    0,
+		Chars:    strings.Split(room.Data.Text, ""),
+		Room:     room.Data,
+		conn:     conn,
 	}
 }
 

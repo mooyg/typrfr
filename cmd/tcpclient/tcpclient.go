@@ -26,13 +26,20 @@ func New() *TCPClient {
 	}
 
 }
-func (c *TCPClient) Read() (data string, err error) {
+
+type Room struct {
+	Id   int
+	Text string
+}
+
+func (c *TCPClient) Read() (data []byte, err error) {
 	d, err := bufio.NewReader(c.conn).ReadString('\n')
 	tmp := []byte(d)
 	dataWithoutEOL := tmp[0 : len(tmp)-1]
 
-	return string(dataWithoutEOL), err
+	return dataWithoutEOL, err
 }
+
 func (c *TCPClient) Write(s []byte) (n int, err error) {
 	return c.conn.Write(s)
 }
