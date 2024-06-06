@@ -18,10 +18,10 @@ func (ui *UI) showJoinRoomUI() {
 		if game != nil {
 			ui.game = game
 			ui.showScreen(game.State)
+
 		} else {
 			ui.showErrorUI()
 		}
-
 	})
 
 	ui.app.SetRoot(layout, true)

@@ -2,6 +2,7 @@ package processor
 
 import (
 	"encoding/json"
+	"github.com/gdamore/tcell/v2"
 	"log/slog"
 	"math/rand"
 	"os"
@@ -10,8 +11,6 @@ import (
 	"typrfr/cmd/tcpclient"
 	"typrfr/pkg/tcp"
 	"typrfr/pkg/utils"
-
-	"github.com/gdamore/tcell/v2"
 )
 
 type State int
@@ -29,7 +28,7 @@ type Game struct {
 	timeEnded   time.Time
 	TotalTime   string
 	Room        Room
-	conn        *tcpclient.TCPClient
+	Conn        *tcpclient.TCPClient
 }
 
 const (
@@ -92,7 +91,7 @@ func CreateRoom() *Game {
 		Index:    0,
 		Chars:    strings.Split(room.Data.Text, ""),
 		Room:     room.Data,
-		conn:     conn,
+		Conn:     conn,
 	}
 }
 
@@ -118,14 +117,16 @@ func JoinRoom(id string) *Game {
 		return nil
 	}
 
-	return &Game{
+	game := &Game{
 		Sentence: room.Data.Text,
 		State:    WAITING_ROOM,
 		Index:    0,
 		Chars:    strings.Split(room.Data.Text, ""),
 		Room:     room.Data,
-		conn:     conn,
+		Conn:     conn,
 	}
+
+	return game
 }
 
 func (g *Game) HasFinished() State {

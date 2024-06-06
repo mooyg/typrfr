@@ -14,6 +14,7 @@ const (
 	CREATE_ROOM
 	JOIN_ROOM
 	ERROR
+	NEW_USER_JOINED
 )
 
 type TCPCommand[T any] struct {
@@ -93,7 +94,7 @@ func JoinRoom(conn *Connection, id int) *Room {
 
 	rooms[idx].Connections = append(rooms[idx].Connections, conn)
 
-	// UserJoined(rooms[idx])
+	UserJoined(rooms[idx])
 
 	conn.Write(&TCPCommand[Room]{
 		Command: JOIN_ROOM,
@@ -107,10 +108,19 @@ func JoinRoom(conn *Connection, id int) *Room {
 }
 
 func UserJoined(room *Room) {
-	// idx := sort.Search(len(rooms), func(i int) bool {
-	// 	return rooms[i].Id == room.Id
-	// })
-	// for _, conn := range rooms[idx].Connections {
-	// 	conn.Write("New user joined room")
-	// }
+	idx := sort.Search(len(rooms), func(i int) bool {
+		return rooms[i].Id == room.Id
+	})
+
+	for _, conn := range rooms[idx].Connections {
+		slog.Info("writing to clients", "id", conn.Id)
+		conn.Write(&TCPCommand[Room]{
+			Command: NEW_USER_JOINED,
+			Data: Room{
+				Id:          rooms[idx].Id,
+				Text:        rooms[idx].Text,
+				Connections: rooms[idx].Connections,
+			},
+		})
+	}
 }
