@@ -4,9 +4,15 @@ TUI for typeracing using [tview](https://github.com/rivo/tview). Uses `TCP` rath
 
 # Todo
 - [ ] Text highlight when typing
-- [ ] Creating and joining rooms
+- [x] Creating and joining rooms
+- [ ] Restart game after game finished
+- [ ] Render game stats for all users
 
 
 # Server 
 
 - use `air` to run the development server for now.
+
+
+# Current demo
+![](demo.mp4)
