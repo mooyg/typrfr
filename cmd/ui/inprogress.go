@@ -12,9 +12,10 @@ func (ui *UI) showInprogressUI() {
 	input := tview.NewTextArea().SetPlaceholder("Start typing...")
 	nav := tview.NewFlex().AddItem(tview.NewBox(), 0, 1, false).AddItem(status, 0, 1, false)
 
-	text := tview.NewTextView().SetText(ui.game.Sentence)
+	text := tview.NewTextView().SetText(ui.game.Sentence).SetRegions(true).SetDynamicColors(true).SetToggleHighlights(true)
 
 	content := tview.NewFlex().AddItem(tview.NewFlex().SetDirection(tview.FlexRow).AddItem(text, 0, 1, false).AddItem(input, 0, 3, true), 0, 1, true)
+
 	layout := tview.NewFlex().SetDirection(tview.FlexRow).AddItem(nav, 0, 1, false).AddItem(content, 0, 1, true)
 
 	ui.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {

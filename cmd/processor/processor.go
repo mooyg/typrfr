@@ -2,8 +2,8 @@ package processor
 
 import (
 	"encoding/json"
-	"github.com/gdamore/tcell/v2"
 	"log/slog"
+	"math"
 	"math/rand"
 	"os"
 	"strings"
@@ -11,6 +11,8 @@ import (
 	"typrfr/cmd/tcpclient"
 	"typrfr/pkg/tcp"
 	"typrfr/pkg/utils"
+
+	"github.com/gdamore/tcell/v2"
 )
 
 type State int
@@ -34,6 +36,7 @@ type Game struct {
 	TotalTime   string
 	Room        Room
 	Conn        *tcpclient.TCPClient
+	Wpm         int
 }
 
 const (
@@ -170,8 +173,17 @@ func (g *Game) ProcessTyping(event *tcell.EventKey) {
 	if g.Index == len(g.Chars) {
 		g.timeEnded = time.Now()
 
-		g.TotalTime = g.timeEnded.Sub(g.timeStarted).String()
+		totalTime := g.timeEnded.Sub(g.timeStarted)
+		g.TotalTime = totalTime.String()
+		totalSeconds := totalTime.Seconds()
+		totalMinutes := totalSeconds / 60
+
 		g.State = FINISHED
+
+		wordCount := len(strings.Split(g.Sentence, " "))
+
+		g.Wpm = int(math.Round(float64(wordCount) / totalMinutes))
+
 		return
 	}
 
