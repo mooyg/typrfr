@@ -13,8 +13,3 @@ TUI for typeracing using [tview](https://github.com/rivo/tview). Uses `TCP` rath
 
 - use `air` to run the development server for now.
 
-
-# Current demo
-
-<video src='demo.mp4' width=180/>
-
