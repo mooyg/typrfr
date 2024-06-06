@@ -15,4 +15,6 @@ TUI for typeracing using [tview](https://github.com/rivo/tview). Uses `TCP` rath
 
 
 # Current demo
-![](demo.mp4)
+
+<video src='demo.mp4' width=180/>
+
