@@ -13,8 +13,9 @@ const (
 	WELCOME = iota
 	CREATE_ROOM
 	JOIN_ROOM
-	ERROR
 	NEW_USER_JOINED
+	START_GAME
+	ERROR
 )
 
 type TCPCommand[T any] struct {
@@ -33,6 +34,12 @@ func RunCommand(cmd byte, data []byte, conn *Connection) {
 			fmt.Errorf("error parsing")
 		}
 		JoinRoom(conn, int(i))
+	case START_GAME:
+		i, err := strconv.ParseInt(string(data), 10, 32)
+		if err != nil {
+			fmt.Errorf("error parsing")
+		}
+		StartGame(conn, int(i))
 	default:
 		fmt.Errorf("missing command")
 	}
@@ -42,6 +49,9 @@ type Room struct {
 	Id          int
 	Connections []*Connection
 	Text        string
+	Leader      int
+	Connection  Connection
+	Started     bool
 }
 
 type Rooms []*Room
@@ -53,17 +63,16 @@ func CreateRoom(conn *Connection) *Room {
 		Connections: []*Connection{conn},
 		Id:          utils.GenCode(),
 		Text:        utils.GenText(),
+		Leader:      conn.Id,
+		Connection:  *conn,
+		Started:     false,
 	}
 
 	rooms = append(rooms, room)
 
 	conn.Write(&TCPCommand[Room]{
 		Command: CREATE_ROOM,
-		Data: Room{
-			Id:          room.Id,
-			Text:        room.Text,
-			Connections: room.Connections,
-		},
+		Data:    *room,
 	})
 
 	return room
@@ -100,8 +109,11 @@ func JoinRoom(conn *Connection, id int) *Room {
 		Command: JOIN_ROOM,
 		Data: Room{
 			Id:          rooms[idx].Id,
-			Text:        rooms[idx].Text,
+			Connection:  *conn,
 			Connections: rooms[idx].Connections,
+			Text:        rooms[idx].Text,
+			Leader:      rooms[idx].Leader,
+			Started:     rooms[idx].Started,
 		},
 	})
 	return rooms[idx]
@@ -114,13 +126,51 @@ func UserJoined(room *Room) {
 
 	for _, conn := range rooms[idx].Connections {
 		slog.Info("writing to clients", "id", conn.Id)
+
 		conn.Write(&TCPCommand[Room]{
 			Command: NEW_USER_JOINED,
 			Data: Room{
 				Id:          rooms[idx].Id,
-				Text:        rooms[idx].Text,
+				Connection:  *conn,
 				Connections: rooms[idx].Connections,
+				Text:        rooms[idx].Text,
+				Leader:      rooms[idx].Leader,
+				Started:     rooms[idx].Started,
 			},
 		})
 	}
+}
+
+func StartGame(c *Connection, id int) *Room {
+	if len(rooms) == 0 {
+		slog.Info("no rooms found")
+		c.Write(&TCPCommand[*Room]{
+			Command: ERROR,
+			Data:    nil,
+		})
+		return nil
+	}
+
+	idx := sort.Search(len(rooms), func(i int) bool {
+		return rooms[i].Id == id
+	})
+
+	if idx == -1 {
+		c.Write(&TCPCommand[*Room]{
+			Command: ERROR,
+			Data:    nil,
+		})
+
+		return nil
+	}
+	for _, conn := range rooms[idx].Connections {
+		slog.Info("starting game for clients in room", "val", rooms[idx].Id)
+
+		conn.Write(&TCPCommand[Room]{
+			Command: START_GAME,
+			Data:    *rooms[idx],
+		})
+	}
+
+	return rooms[idx]
 }

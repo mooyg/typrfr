@@ -14,11 +14,16 @@ import (
 )
 
 type State int
+
 type Room struct {
 	Id          int
 	Text        string
 	Connections []*tcp.Connection
+	Leader      int
+	Connection  tcp.Connection
+	Started     bool
 }
+
 type Game struct {
 	Sentence    string
 	State       State
@@ -51,6 +56,7 @@ func NewLocalGame() *Game {
 		slog.Error("error while opening the file", "err", err)
 	}
 	var payload []Data
+
 	err = json.Unmarshal(content, &payload)
 
 	if err != nil {
@@ -83,6 +89,7 @@ func CreateRoom() *Game {
 		slog.Error("error while reading data from the client")
 		os.Exit(2)
 	}
+
 	room := utils.Unmarshal[tcp.TCPCommand[Room]](data)
 
 	return &Game{
@@ -136,6 +143,13 @@ func (g *Game) HasFinished() State {
 func (g *Game) StartGame() *Game {
 	g.State = IN_PROGRESS
 	g.timeStarted = time.Now()
+	return g
+}
+func (g *Game) SendStartGameCommand(roomId string) *Game {
+	s := append([]byte(roomId), '\n')
+	input := append([]byte{tcp.START_GAME}, s...)
+	g.Conn.Write(input)
+
 	return g
 }
 

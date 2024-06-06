@@ -50,11 +50,19 @@ func (ui *UI) ListenChanges() {
 
 		cmd := utils.Unmarshal[tcp.TCPCommand[any]](data)
 
-		if cmd.Command == tcp.NEW_USER_JOINED {
+		switch cmd.Command {
+		case tcp.NEW_USER_JOINED:
 			d := utils.Unmarshal[tcp.TCPCommand[processor.Room]](data)
 			ui.game.Room = d.Data
 			ui.updateWaitingRoom()
 			ui.app.Draw()
+		case tcp.START_GAME:
+			d := utils.Unmarshal[tcp.TCPCommand[processor.Room]](data)
+			ui.game.Room = d.Data
+			ui.game.StartGame()
+			ui.showScreen(ui.game.State)
+			ui.app.Draw()
 		}
+
 	}
 }
