@@ -15,6 +15,7 @@ const (
 	JOIN_ROOM
 	NEW_USER_JOINED
 	START_GAME
+	END_GAME
 	ERROR
 )
 
@@ -45,13 +46,19 @@ func RunCommand(cmd byte, data []byte, conn *Connection) {
 	}
 }
 
+type User struct {
+	Conn *Connection
+	Id   int
+	Wpm  int
+}
+
 type Room struct {
-	Id          int
-	Connections []*Connection
-	Text        string
-	Leader      int
-	Connection  Connection
-	Started     bool
+	Id      int
+	Users   []User
+	Text    string
+	Leader  int
+	Started bool
+	MyId    int
 }
 
 type Rooms []*Room
@@ -59,13 +66,20 @@ type Rooms []*Room
 var rooms Rooms = make(Rooms, 0, 10)
 
 func CreateRoom(conn *Connection) *Room {
+	// Initialise the leader
 	room := &Room{
-		Connections: []*Connection{conn},
-		Id:          utils.GenCode(),
-		Text:        utils.GenText(),
-		Leader:      conn.Id,
-		Connection:  *conn,
-		Started:     false,
+		Users: []User{
+			User{
+				Conn: conn,
+				Id:   conn.Id,
+				Wpm:  0,
+			},
+		},
+		Id:      utils.GenCode(),
+		Text:    utils.GenText(),
+		Leader:  conn.Id,
+		Started: false,
+		MyId:    conn.Id,
 	}
 
 	rooms = append(rooms, room)
@@ -101,19 +115,24 @@ func JoinRoom(conn *Connection, id int) *Room {
 		return nil
 	}
 
-	rooms[idx].Connections = append(rooms[idx].Connections, conn)
+	user := User{
+		Id:   conn.Id,
+		Conn: conn,
+		Wpm:  0,
+	}
+	rooms[idx].Users = append(rooms[idx].Users, user)
 
 	UserJoined(rooms[idx])
 
 	conn.Write(&TCPCommand[Room]{
 		Command: JOIN_ROOM,
 		Data: Room{
-			Id:          rooms[idx].Id,
-			Connection:  *conn,
-			Connections: rooms[idx].Connections,
-			Text:        rooms[idx].Text,
-			Leader:      rooms[idx].Leader,
-			Started:     rooms[idx].Started,
+			Id:      rooms[idx].Id,
+			Users:   rooms[idx].Users,
+			Text:    rooms[idx].Text,
+			Leader:  rooms[idx].Leader,
+			Started: rooms[idx].Started,
+			MyId:    conn.Id,
 		},
 	})
 	return rooms[idx]
@@ -124,18 +143,18 @@ func UserJoined(room *Room) {
 		return rooms[i].Id == room.Id
 	})
 
-	for _, conn := range rooms[idx].Connections {
-		slog.Info("writing to clients", "id", conn.Id)
+	for _, user := range rooms[idx].Users {
+		slog.Info("writing to clients", "id", user.Id)
 
-		conn.Write(&TCPCommand[Room]{
+		user.Conn.Write(&TCPCommand[Room]{
 			Command: NEW_USER_JOINED,
 			Data: Room{
-				Id:          rooms[idx].Id,
-				Connection:  *conn,
-				Connections: rooms[idx].Connections,
-				Text:        rooms[idx].Text,
-				Leader:      rooms[idx].Leader,
-				Started:     rooms[idx].Started,
+				Id:      rooms[idx].Id,
+				Users:   rooms[idx].Users,
+				Text:    rooms[idx].Text,
+				Leader:  rooms[idx].Leader,
+				Started: rooms[idx].Started,
+				MyId:    user.Conn.Id,
 			},
 		})
 	}
@@ -163,10 +182,45 @@ func StartGame(c *Connection, id int) *Room {
 
 		return nil
 	}
-	for _, conn := range rooms[idx].Connections {
+	for _, user := range rooms[idx].Users {
 		slog.Info("starting game for clients in room", "val", rooms[idx].Id)
 
-		conn.Write(&TCPCommand[Room]{
+		user.Conn.Write(&TCPCommand[Room]{
+			Command: START_GAME,
+			Data:    *rooms[idx],
+		})
+	}
+
+	return rooms[idx]
+}
+
+func EndGame(c *Connection, id int) *Room {
+	if len(rooms) == 0 {
+		slog.Info("no rooms found")
+		c.Write(&TCPCommand[*Room]{
+			Command: ERROR,
+			Data:    nil,
+		})
+		return nil
+	}
+
+	idx := sort.Search(len(rooms), func(i int) bool {
+		return rooms[i].Id == id
+	})
+
+	if idx == -1 {
+		c.Write(&TCPCommand[*Room]{
+			Command: ERROR,
+			Data:    nil,
+		})
+
+		return nil
+	}
+
+	for _, user := range rooms[idx].Users {
+		slog.Info("ending game", "val", rooms[idx].Id)
+
+		user.Conn.Write(&TCPCommand[Room]{
 			Command: START_GAME,
 			Data:    *rooms[idx],
 		})

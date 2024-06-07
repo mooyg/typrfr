@@ -1,10 +1,9 @@
 package ui
 
 import (
-	"typrfr/cmd/processor"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"typrfr/cmd/processor"
 )
 
 func (ui *UI) showInprogressUI() {
@@ -12,7 +11,7 @@ func (ui *UI) showInprogressUI() {
 	input := tview.NewTextArea().SetPlaceholder("Start typing...")
 	nav := tview.NewFlex().AddItem(tview.NewBox(), 0, 1, false).AddItem(status, 0, 1, false)
 
-	text := tview.NewTextView().SetText(ui.game.Sentence).SetRegions(true).SetDynamicColors(true).SetToggleHighlights(true)
+	text := tview.NewTextView().SetText(ui.game.RenderedText).SetRegions(true).SetDynamicColors(true).SetToggleHighlights(true)
 
 	content := tview.NewFlex().AddItem(tview.NewFlex().SetDirection(tview.FlexRow).AddItem(text, 0, 1, false).AddItem(input, 0, 3, true), 0, 1, true)
 
@@ -21,6 +20,11 @@ func (ui *UI) showInprogressUI() {
 	ui.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if ui.game.State == processor.IN_PROGRESS {
 			ui.game.ProcessTyping(event)
+			// Somehow now update the text value
+			go func() {
+				text.SetText(ui.game.RenderedText)
+				ui.app.Draw()
+			}()
 			if ui.game.HasFinished() == processor.FINISHED {
 				ui.showFinishedUI()
 			}

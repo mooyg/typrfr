@@ -2,10 +2,12 @@ package processor
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"math"
 	"math/rand"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 	"typrfr/cmd/tcpclient"
@@ -16,27 +18,34 @@ import (
 )
 
 type State int
+type User struct {
+	Conn *tcp.Connection
+	Id   int
+	Wpm  int
+}
 
 type Room struct {
-	Id          int
-	Text        string
-	Connections []*tcp.Connection
-	Leader      int
-	Connection  tcp.Connection
-	Started     bool
+	Id      int
+	Users   []User
+	Text    string
+	Leader  int
+	Started bool
+	MyId    int
 }
 
 type Game struct {
-	Sentence    string
-	State       State
-	Index       int
-	Chars       []string
-	timeStarted time.Time
-	timeEnded   time.Time
-	TotalTime   string
-	Room        Room
-	Conn        *tcpclient.TCPClient
-	Wpm         int
+	Sentence     string
+	State        State
+	Index        int
+	Chars        []string
+	timeStarted  time.Time
+	timeEnded    time.Time
+	TotalTime    string
+	Room         Room
+	Conn         *tcpclient.TCPClient
+	Wpm          int
+	IsLocal      bool
+	RenderedText string
 }
 
 const (
@@ -69,10 +78,12 @@ func NewLocalGame() *Game {
 	text := payload[rand.Intn(len(payload))].Para
 
 	return &Game{
-		Sentence: text,
-		State:    NOT_STARTED,
-		Index:    0,
-		Chars:    strings.Split(text, ""),
+		Sentence:     text,
+		State:        NOT_STARTED,
+		Index:        0,
+		Chars:        strings.Split(text, ""),
+		IsLocal:      true,
+		RenderedText: text,
 	}
 }
 
@@ -96,12 +107,14 @@ func CreateRoom() *Game {
 	room := utils.Unmarshal[tcp.TCPCommand[Room]](data)
 
 	return &Game{
-		Sentence: room.Data.Text,
-		State:    WAITING_ROOM,
-		Index:    0,
-		Chars:    strings.Split(room.Data.Text, ""),
-		Room:     room.Data,
-		Conn:     conn,
+		Sentence:     room.Data.Text,
+		State:        WAITING_ROOM,
+		Index:        0,
+		Chars:        strings.Split(room.Data.Text, ""),
+		Room:         room.Data,
+		Conn:         conn,
+		IsLocal:      false,
+		RenderedText: room.Data.Text,
 	}
 }
 
@@ -128,12 +141,14 @@ func JoinRoom(id string) *Game {
 	}
 
 	game := &Game{
-		Sentence: room.Data.Text,
-		State:    WAITING_ROOM,
-		Index:    0,
-		Chars:    strings.Split(room.Data.Text, ""),
-		Room:     room.Data,
-		Conn:     conn,
+		Sentence:     room.Data.Text,
+		State:        WAITING_ROOM,
+		Index:        0,
+		Chars:        strings.Split(room.Data.Text, ""),
+		Room:         room.Data,
+		Conn:         conn,
+		IsLocal:      false,
+		RenderedText: room.Data.Text,
 	}
 
 	return game
@@ -163,11 +178,15 @@ func (g *Game) EndGame() *Game {
 
 func (g *Game) ProcessTyping(event *tcell.EventKey) {
 
-	if string(event.Rune()) == g.Chars[g.Index] {
+	unwrapped := g.Unwrap(g.Chars[g.Index])
+
+	if string(event.Rune()) == unwrapped {
+		g.Chars[g.Index] = unwrapped
+		g.RenderedText = strings.Join(g.Chars, "")
 		g.Index = g.Index + 1
 	} else {
-		// TODO: highlight error
-		slog.Info("highlight error here.")
+		g.Chars[g.Index] = g.WrapColor(g.Chars[g.Index])
+		g.RenderedText = strings.Join(g.Chars, "")
 	}
 
 	if g.Index == len(g.Chars) {
@@ -186,5 +205,21 @@ func (g *Game) ProcessTyping(event *tcell.EventKey) {
 
 		return
 	}
+}
+func (g *Game) WrapColor(c string) string {
 
+	re := regexp.MustCompile(`\[.*?\]`)
+
+	if len(re.FindAllString(c, -1)) > 0 {
+		return c
+	}
+
+	out := fmt.Sprintf("%s%s%s", "[#ff0000]", c, "[white]")
+
+	return out
+}
+func (g *Game) Unwrap(c string) string {
+	r := strings.Replace(c, "[#ff0000]", "", 1)
+	s := strings.Replace(r, "[white]", "", 1)
+	return s
 }

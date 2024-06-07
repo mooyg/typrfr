@@ -3,6 +3,7 @@ package ui
 import (
 	"typrfr/cmd/processor"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -24,5 +25,6 @@ func (ui *UI) showGameStartUI() {
 		}
 	})
 
+	dropdown.SetBackgroundColor(tcell.ColorRed)
 	ui.app.SetRoot(dropdown, true)
 }

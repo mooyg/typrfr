@@ -7,11 +7,23 @@ import (
 )
 
 func (ui *UI) showFinishedUI() {
-	finished := tview.NewFlex()
-	textView := tview.NewTextView().SetText(fmt.Sprintf("Word per minute %d", ui.game.Wpm))
+	if ui.game.IsLocal == false {
+		finished := tview.NewFlex()
+		textView := tview.NewTextView().SetText(fmt.Sprintf("Word per minute %d", ui.game.Wpm))
 
-	finished.AddItem(textView, 0, 1, false)
-	finished.SetTitle("Total time taken" + " " + ui.game.TotalTime).SetBorder(true)
+		finished.AddItem(textView, 0, 1, false)
+		finished.SetTitle("Total time taken" + " " + ui.game.TotalTime).SetBorder(true)
 
-	ui.app.SetRoot(finished, true)
+		ui.app.SetRoot(finished, true)
+
+	} else {
+		finished := tview.NewFlex()
+		textView := tview.NewTextView().SetText(fmt.Sprintf("Word per minute %d", ui.game.Wpm))
+
+		finished.AddItem(textView, 0, 1, false)
+		finished.SetTitle("Total time taken" + " " + ui.game.TotalTime).SetBorder(true)
+
+		ui.app.SetRoot(finished, true)
+
+	}
 }
