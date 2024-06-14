@@ -10,7 +10,7 @@ import (
 
 type TCP struct {
 	listener net.Listener
-	sockets  map[int]chan Connection
+	sockets  map[int]Connection
 }
 
 func NewTCPServer(port uint16) (*TCP, error) {
@@ -23,7 +23,7 @@ func NewTCPServer(port uint16) (*TCP, error) {
 
 	return &TCP{
 		listener: listener,
-		sockets:  make(map[int]chan Connection),
+		sockets:  make(map[int]Connection),
 	}, nil
 
 }
@@ -50,8 +50,7 @@ func (t *TCP) Start() {
 
 		id++
 
-		t.sockets[id] = make(chan Connection, 1)
-		t.sockets[id] <- newConn
+		t.sockets[id] = newConn
 
 		slog.Info("total sockets", "len", len(t.sockets))
 
@@ -59,7 +58,7 @@ func (t *TCP) Start() {
 	}
 }
 
-func handleConnection(c *Connection, sockets map[int]chan Connection) {
+func handleConnection(c *Connection, sockets map[int]Connection) {
 	packet := make([]byte, 4096)
 
 	tmp := make([]byte, 4096)

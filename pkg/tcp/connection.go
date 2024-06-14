@@ -8,8 +8,9 @@ import (
 )
 
 type Connection struct {
-	conn net.Conn
-	Id   int
+	conn     net.Conn
+	Id       int
+	previous []byte
 }
 
 func NewConnection(conn net.Conn, id int) Connection {
@@ -24,7 +25,7 @@ func (c *Connection) Close() {
 }
 
 // Seperate the command rcvd and the data
-func (c *Connection) ParseMessage(tmp []byte, sockets map[int]chan Connection) {
+func (c *Connection) ParseMessage(tmp []byte, sockets map[int]Connection) {
 	if len(tmp) == 0 {
 		slog.Error("rcvd invalid data")
 		return

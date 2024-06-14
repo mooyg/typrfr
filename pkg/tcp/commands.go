@@ -9,7 +9,7 @@ import (
 	"typrfr/pkg/utils"
 )
 
-func RunCommand(cmd byte, data []byte, conn *Connection, sockets map[int]chan Connection) {
+func RunCommand(cmd byte, data []byte, conn *Connection, sockets map[int]Connection) {
 	switch cmd {
 	case shared.REQUEST_USER_ID:
 		requestUserId(conn)
@@ -62,7 +62,7 @@ func createRoom(c *Connection) {
 	})
 }
 
-func joinRoom(c *Connection, roomId int, sockets map[int]chan Connection) *shared.MultiplayerRoom {
+func joinRoom(c *Connection, roomId int, sockets map[int]Connection) *shared.MultiplayerRoom {
 	if len(Rooms) == 0 {
 		slog.Info("no rooms found")
 		return nil
@@ -93,13 +93,13 @@ func joinRoom(c *Connection, roomId int, sockets map[int]chan Connection) *share
 	return &Rooms[idx]
 }
 
-func newUserJoined(room *shared.MultiplayerRoom, sockets map[int]chan Connection) {
+func newUserJoined(room *shared.MultiplayerRoom, sockets map[int]Connection) {
 	// Finding the user from connections for now due to import cycle.
 	slog.Info("sockets", "len", sockets)
 	for _, user := range room.Users {
 		slog.Info("starting the process to send join notification")
 
-		conn := <-sockets[user.Id]
+		conn := sockets[user.Id]
 
 		slog.Info("sending new user join to user", "id", user.Id)
 
