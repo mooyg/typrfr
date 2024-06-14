@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"typrfr/cmd/game"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -31,6 +33,13 @@ ___________                     _____________________
 	v.App.SetFocus(input)
 
 	input.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if v.Game.State == game.IN_PROGRESS {
+			v.Game.ProcessTyping(event)
+			if v.Game.State == game.FINISHED {
+				v.ShowScreen(v.Game.State)
+			}
+
+		}
 		return event
 	})
 

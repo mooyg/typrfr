@@ -21,6 +21,12 @@ func RunCommand(cmd byte, data []byte, conn *Connection, sockets map[int]Connect
 			slog.Error("error parsing room id")
 		}
 		joinRoom(conn, int(roomId), sockets)
+	case shared.START_GAME:
+		roomId, err := strconv.ParseInt(string(data), 10, 32)
+		if err != nil {
+			slog.Error("error parsing room id")
+		}
+		startGame(int(roomId), sockets)
 	default:
 		slog.Error("no valid cmd found")
 	}
@@ -67,13 +73,21 @@ func joinRoom(c *Connection, roomId int, sockets map[int]Connection) *shared.Mul
 		slog.Info("no rooms found")
 		return nil
 	}
+
 	idx := sort.Search(len(Rooms), func(i int) bool {
 		return Rooms[i].Id == roomId
 	})
+
 	if idx == -1 {
 		slog.Info("no room found with", "id", roomId)
 		return nil
 	}
+
+	// TODO: THROW ERROR IN FUTURE Don't join
+	if Rooms[idx].InProgress == true {
+		return nil
+	}
+
 	newUser := shared.User{
 		Id: c.Id,
 	}
@@ -111,4 +125,29 @@ func newUserJoined(room *shared.MultiplayerRoom, sockets map[int]Connection) {
 		})
 
 	}
+}
+func startGame(roomId int, sockets map[int]Connection) *shared.MultiplayerRoom {
+	if len(Rooms) == 0 {
+		slog.Info("No rooms found")
+		return nil
+	}
+	idx := sort.Search(len(Rooms), func(i int) bool {
+		return Rooms[i].Id == roomId
+	})
+	if idx == -1 {
+		slog.Info("No room found with", "id", roomId)
+		return nil
+	}
+
+	Rooms[idx].InProgress = true
+
+	for _, user := range Rooms[idx].Users {
+		conn := sockets[user.Id]
+		slog.Info("marking game start for user with", "id", user.Id)
+		conn.Write(&shared.TCPCommand[shared.MultiplayerRoom]{
+			Command: shared.START_GAME,
+			Data:    Rooms[idx],
+		})
+	}
+	return &Rooms[idx]
 }

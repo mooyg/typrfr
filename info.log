@@ -1,2 +1,19 @@
-2024/06/14 15:41:07 logger.go:24: LogFile : info.log
-2024/06/14 15:41:08 waitingroom.go:36: Start game
+2024/06/14 16:51:54 logger.go:24: LogFile : info.log
+2024/06/14 16:52:00 ui.go:73: room updated as new user joined &{387 [{0} {1}] 0 No one saves us but ourselves. No one can and no one may. We ourselves must walk the path. false}
+2024/06/14 16:52:00 ui.go:82: room started
+2024/06/14 16:52:21 game.go:175: highlight error here.
+2024/06/14 16:52:21 game.go:175: highlight error here.
+2024/06/14 16:52:22 game.go:175: highlight error here.
+2024/06/14 16:52:22 game.go:175: highlight error here.
+2024/06/14 16:52:26 game.go:175: highlight error here.
+2024/06/14 16:52:26 game.go:175: highlight error here.
+2024/06/14 16:52:27 game.go:175: highlight error here.
+2024/06/14 16:52:27 game.go:175: highlight error here.
+2024/06/14 16:52:28 game.go:175: highlight error here.
+2024/06/14 16:52:28 game.go:175: highlight error here.
+2024/06/14 16:52:30 game.go:175: highlight error here.
+2024/06/14 16:52:30 game.go:175: highlight error here.
+2024/06/14 16:52:30 game.go:175: highlight error here.
+2024/06/14 16:52:30 game.go:175: highlight error here.
+2024/06/14 16:52:31 game.go:175: highlight error here.
+2024/06/14 16:52:31 game.go:175: highlight error here.

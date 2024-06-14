@@ -26,5 +26,6 @@ type MultiplayerRoom struct {
 	// User id of the leader in the room
 	Leader int
 	// Sentence assigned for the room
-	Text string
+	Text       string
+	InProgress bool
 }

@@ -1,15 +1,14 @@
 package ui
 
 import (
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
 	"log/slog"
 	"os"
 	"typrfr/cmd/game"
 	"typrfr/pkg/logger"
 	"typrfr/pkg/shared"
 	"typrfr/pkg/utils"
-
-	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 )
 
 type View struct {
@@ -48,6 +47,8 @@ func (v *View) ShowScreen(state game.GameState) {
 		v.showJoinRoomUI()
 	case game.IN_PROGRESS:
 		v.showInProgressUI()
+	case game.FINISHED:
+		v.showFinishedUI()
 	}
 }
 
@@ -74,7 +75,13 @@ func (v *View) ListenChanges() {
 			v.ShowScreen(v.Game.State)
 
 			v.App.ForceDraw()
+		case shared.START_GAME:
+			v.Game.StartGame()
+			v.ShowScreen(v.Game.State)
+			v.App.ForceDraw()
+			logger.Log.Println("room started")
 		}
+
 	}
 
 }

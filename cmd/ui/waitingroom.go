@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 	"github.com/rivo/tview"
-	"typrfr/pkg/logger"
 )
 
 func (v *View) initWaitingRoom() {
@@ -33,7 +32,7 @@ func (v *View) showWaitingRoomUI() {
 	}
 
 	startButton := tview.NewButton("Start game").SetSelectedFunc(func() {
-		logger.Log.Print("Start game")
+		v.Game.SendStartGameCommand(fmt.Sprintf("%d", v.Game.Room.Id))
 	})
 
 	v.idx.SetDirection(tview.FlexRow).AddItem(banner, 0, 1, false).AddItem(userList, 0, 2, false)

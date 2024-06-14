@@ -3,12 +3,17 @@ package game
 import (
 	"encoding/json"
 	"log/slog"
+	"math"
 	"math/rand"
 	"os"
 	"strings"
+	"time"
 	"typrfr/cmd/tcpclient"
+	"typrfr/pkg/logger"
 	"typrfr/pkg/shared"
 	"typrfr/pkg/utils"
+
+	"github.com/gdamore/tcell/v2"
 )
 
 type GameState int
@@ -33,6 +38,9 @@ type Game struct {
 	Room         *shared.MultiplayerRoom
 	Me           shared.User
 	ClientConn   *tcpclient.TCPClient
+	timeStarted  time.Time
+	timeEnded    time.Time
+	TotalTime    string
 }
 
 type FileData struct {
@@ -144,4 +152,43 @@ func JoinRoom(roomId string) *Game {
 		Me:           user,
 		ClientConn:   conn,
 	}
+}
+func (g *Game) SendStartGameCommand(roomId string) *Game {
+	input := []byte{shared.START_GAME}
+
+	g.ClientConn.Write(append(input, roomId...))
+
+	return g
+}
+func (g *Game) StartGame() *Game {
+	g.State = IN_PROGRESS
+	g.timeStarted = time.Now()
+	return g
+}
+
+func (g *Game) ProcessTyping(event *tcell.EventKey) {
+
+	if string(event.Rune()) == g.Chars[g.Index] {
+		g.Index = g.Index + 1
+	} else {
+		// TODO: highlight error
+		logger.Log.Println("highlight error here.")
+	}
+
+	if g.Index == len(g.Chars) {
+		g.timeEnded = time.Now()
+
+		totalTime := g.timeEnded.Sub(g.timeStarted)
+		g.TotalTime = totalTime.String()
+		totalSeconds := totalTime.Seconds()
+		totalMinutes := totalSeconds / 60
+
+		g.State = FINISHED
+
+		wordCount := len(strings.Split(g.Text, " "))
+
+		g.Speed = int(math.Round(float64(wordCount) / totalMinutes))
+		return
+	}
+
 }
