@@ -2,9 +2,8 @@ package ui
 
 import (
 	"fmt"
-	"typrfr/pkg/logger"
-
 	"github.com/rivo/tview"
+	"typrfr/pkg/logger"
 )
 
 func (v *View) initWaitingRoom() {

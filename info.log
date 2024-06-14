@@ -1,5 +1,2 @@
-2024/06/14 15:39:03 logger.go:24: LogFile : info.log
-2024/06/14 15:39:04 waitingroom.go:37: Start game
-2024/06/14 15:39:04 waitingroom.go:37: Start game
-2024/06/14 15:39:05 waitingroom.go:37: Start game
-2024/06/14 15:39:05 waitingroom.go:37: Start game
+2024/06/14 15:41:07 logger.go:24: LogFile : info.log
+2024/06/14 15:41:08 waitingroom.go:36: Start game
