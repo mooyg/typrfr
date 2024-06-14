@@ -48,9 +48,9 @@ func (t *TCP) Start() {
 
 		slog.Info("new conn", "val", newConn)
 
-		id++
-
 		t.sockets[id] = newConn
+
+		id++
 
 		slog.Info("total sockets", "len", len(t.sockets))
 

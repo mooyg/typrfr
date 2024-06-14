@@ -2,6 +2,8 @@ package ui
 
 import (
 	"fmt"
+	"typrfr/pkg/logger"
+
 	"github.com/rivo/tview"
 )
 
@@ -20,6 +22,7 @@ func (v *View) showWaitingRoomUI() {
    \ \____________\ \__\ \__\ \__\   \ \__\ \ \__\ \__\\ \__\ \_______\
     \|____________|\|__|\|__|\|__|    \|__|  \|__|\|__| \|__|\|_______|
 	`)
+
 	userList := tview.NewList()
 
 	for i, user := range v.Game.Room.Users {
@@ -30,8 +33,16 @@ func (v *View) showWaitingRoomUI() {
 		}
 	}
 
-	v.idx.SetTitle(fmt.Sprintf("Room code %d", v.Game.Room.Id))
+	startButton := tview.NewButton("Start game").SetSelectedFunc(func() {
+		logger.Log.Print("Start game")
+	})
 
 	v.idx.SetDirection(tview.FlexRow).AddItem(banner, 0, 1, false).AddItem(userList, 0, 2, false)
+	if v.Game.Me.Id == v.Game.Room.Leader {
+		v.idx.AddItem(startButton, 0, 1, true)
+	}
+
+	v.idx.SetTitle(fmt.Sprintf("Room code %d", v.Game.Room.Id))
+	v.App.SetFocus(startButton)
 
 }

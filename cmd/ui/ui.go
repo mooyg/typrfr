@@ -54,14 +54,9 @@ func (v *View) ShowScreen(state game.GameState) {
 // Listen to changes like `NEW_USER_JOINED` etc
 func (v *View) ListenChanges() {
 
-	logger.Log.Println("Listening to changes")
-
 	for {
-
-		logger.Log.Println("cmd rcvd")
 		data, err := v.Game.ClientConn.Read()
 
-		logger.Log.Print(data)
 		if err != nil {
 			slog.Error("error occured while processing message from the server (ListenChanges)", "err", err)
 			os.Exit(2)
@@ -74,9 +69,11 @@ func (v *View) ListenChanges() {
 
 			v.Game.Room = &newRoomData
 
-			logger.Log.Println("room updated as new user joined", v.Game.Room.Users)
+			logger.Log.Println("room updated as new user joined", v.Game.Room)
 
-			v.showWaitingRoomUI()
+			v.ShowScreen(v.Game.State)
+
+			v.App.ForceDraw()
 		}
 	}
 
