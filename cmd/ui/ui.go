@@ -2,67 +2,82 @@ package ui
 
 import (
 	"log/slog"
-	"typrfr/cmd/processor"
-	"typrfr/pkg/tcp"
+	"os"
+	"typrfr/cmd/game"
+	"typrfr/pkg/logger"
+	"typrfr/pkg/shared"
 	"typrfr/pkg/utils"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
-type UI struct {
-	app  *tview.Application
-	game *processor.Game
-	view *tview.Flex
+type View struct {
+	App  *tview.Application
+	idx  *tview.Flex
+	Game *game.Game
 }
 
-func (ui *UI) showScreen(state processor.State) {
+func Init() View {
+	app := tview.NewApplication()
+	frame := tview.NewFlex()
+
+	frame.SetBorder(true).SetTitle("typrfr").SetBackgroundColor(tcell.ColorBlue)
+
+	return View{
+		App: app,
+		idx: frame,
+	}
+}
+
+func (v *View) Run() {
+	v.ShowScreen(game.NOT_STARTED)
+	if err := v.App.SetRoot(v.idx, true).Run(); err != nil {
+		slog.Info("some error occured")
+		os.Exit(2)
+	}
+}
+
+func (v *View) ShowScreen(state game.GameState) {
 	switch state {
-	case processor.NOT_STARTED:
-		ui.showGameStartUI()
-	case processor.JOIN_ROOM:
-		ui.showJoinRoomUI()
-	case processor.WAITING_ROOM:
-		ui.showWaitingRoomUI()
-	case processor.IN_PROGRESS:
-		ui.showInprogressUI()
+	case game.NOT_STARTED:
+		v.showLandingUI()
+	case game.WAITING_ROOM:
+		v.showWaitingRoomUI()
+	case game.JOIN_ROOM:
+		v.showJoinRoomUI()
+	case game.IN_PROGRESS:
+		v.showInProgressUI()
 	}
 }
 
-func Init() *UI {
-	return &UI{
-		app:  tview.NewApplication(),
-		view: tview.NewFlex(),
-	}
-}
+// Listen to changes like `NEW_USER_JOINED` etc
+func (v *View) ListenChanges() {
 
-func (ui *UI) Run() {
-	ui.showScreen(processor.NOT_STARTED)
-	if err := ui.app.Run(); err != nil {
-		panic(err)
-	}
-}
-func (ui *UI) ListenChanges() {
+	logger.Log.Println("Listening to changes")
+
 	for {
-		data, err := ui.game.Conn.Read()
-		if err != nil {
-			slog.Error("some error occured while processing a message")
-		}
 
-		cmd := utils.Unmarshal[tcp.TCPCommand[any]](data)
+		logger.Log.Println("cmd rcvd")
+		data, err := v.Game.ClientConn.Read()
+
+		logger.Log.Print(data)
+		if err != nil {
+			slog.Error("error occured while processing message from the server (ListenChanges)", "err", err)
+			os.Exit(2)
+		}
+		cmd := utils.Unmarshal[shared.TCPCommand[any]](data)
 
 		switch cmd.Command {
-		case tcp.NEW_USER_JOINED:
-			d := utils.Unmarshal[tcp.TCPCommand[processor.Room]](data)
-			ui.game.Room = d.Data
-			ui.updateWaitingRoom()
-			ui.app.Draw()
-		case tcp.START_GAME:
-			d := utils.Unmarshal[tcp.TCPCommand[processor.Room]](data)
-			ui.game.Room = d.Data
-			ui.game.StartGame()
-			ui.showScreen(ui.game.State)
-			ui.app.Draw()
-		}
+		case shared.NEW_USER_JOINED:
+			newRoomData := utils.Unmarshal[shared.TCPCommand[shared.MultiplayerRoom]](data).Data
 
+			v.Game.Room = &newRoomData
+
+			logger.Log.Println("room updated as new user joined", v.Game.Room.Users)
+
+			v.showWaitingRoomUI()
+		}
 	}
+
 }

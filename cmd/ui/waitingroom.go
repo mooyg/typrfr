@@ -2,40 +2,36 @@ package ui
 
 import (
 	"fmt"
-
 	"github.com/rivo/tview"
 )
 
-func (ui *UI) showWaitingRoomUI() {
-	ui.updateWaitingRoom()
-	go ui.ListenChanges()
+func (v *View) initWaitingRoom() {
+	go v.ListenChanges()
 }
+func (v *View) showWaitingRoomUI() {
+	v.idx.Clear()
 
-func (ui *UI) updateWaitingRoom() {
-	ui.view.Clear()
-
+	banner := tview.NewTextView().SetText(`
+ ___       __   ________  ___  _________  ___  ________   ________     
+|\  \     |\  \|\   __  \|\  \|\___   ___\\  \|\   ___  \|\   ____\    
+\ \  \    \ \  \ \  \|\  \ \  \|___ \  \_\ \  \ \  \\ \  \ \  \___|    
+ \ \  \  __\ \  \ \   __  \ \  \   \ \  \ \ \  \ \  \\ \  \ \  \  ___  
+  \ \  \|\__\_\  \ \  \ \  \ \  \   \ \  \ \ \  \ \  \\ \  \ \  \|\  \ 
+   \ \____________\ \__\ \__\ \__\   \ \__\ \ \__\ \__\\ \__\ \_______\
+    \|____________|\|__|\|__|\|__|    \|__|  \|__|\|__| \|__|\|_______|
+	`)
 	userList := tview.NewList()
 
-	layout := ui.view.AddItem(userList, 0, 2, false)
-
-	startButton := tview.NewButton("Start game").SetSelectedFunc(func() {
-		ui.game.SendStartGameCommand(fmt.Sprintf("%d", ui.game.Room.Id))
-	})
-
-	for i, user := range ui.game.Room.Users {
-		if ui.game.Room.Leader == user.Id {
-			userList.AddItem("Leader ID", fmt.Sprintf("%d", user.Id), rune(97+i), nil)
+	for i, user := range v.Game.Room.Users {
+		if user.Id == v.Game.Room.Leader {
+			userList.AddItem("Leader Id", fmt.Sprintf("%d", user.Id), rune(97+i), func() {})
 		} else {
-			userList.AddItem("User ID", fmt.Sprintf("%d", user.Id), rune(97+i), nil)
+			userList.AddItem("User Id", fmt.Sprintf("%d", user.Id), rune(97+i), func() {})
 		}
 	}
 
-	if ui.game.Room.MyId == ui.game.Room.Leader {
-		layout.AddItem(startButton, 0, 2, true)
-	}
+	v.idx.SetTitle(fmt.Sprintf("Room code %d", v.Game.Room.Id))
 
-	layout.SetBorder(true).SetTitle(fmt.Sprintf("Room code %d", ui.game.Room.Id))
-
-	ui.app.SetRoot(layout, true)
+	v.idx.SetDirection(tview.FlexRow).AddItem(banner, 0, 1, false).AddItem(userList, 0, 2, false)
 
 }

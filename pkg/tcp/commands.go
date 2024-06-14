@@ -2,229 +2,113 @@ package tcp
 
 // Turn this into it's own module so it can be used on the client
 import (
-	"fmt"
 	"log/slog"
 	"sort"
 	"strconv"
+	"typrfr/pkg/shared"
 	"typrfr/pkg/utils"
 )
 
-const (
-	WELCOME = iota
-	CREATE_ROOM
-	JOIN_ROOM
-	NEW_USER_JOINED
-	START_GAME
-	END_GAME
-	ERROR
-)
-
-type TCPCommand[T any] struct {
-	Command byte
-	Data    T
-}
-
-func RunCommand(cmd byte, data []byte, conn *Connection) {
+func RunCommand(cmd byte, data []byte, conn *Connection, sockets map[int]chan Connection) {
 	switch cmd {
-	case WELCOME:
-	case CREATE_ROOM:
-		CreateRoom(conn)
-	case JOIN_ROOM:
-		i, err := strconv.ParseInt(string(data), 10, 32)
+	case shared.REQUEST_USER_ID:
+		requestUserId(conn)
+	case shared.CREATE_ROOM:
+		createRoom(conn)
+	case shared.JOIN_ROOM:
+		roomId, err := strconv.ParseInt(string(data), 10, 32)
 		if err != nil {
-			fmt.Errorf("error parsing")
+			slog.Error("error parsing room id")
 		}
-		JoinRoom(conn, int(i))
-	case START_GAME:
-		i, err := strconv.ParseInt(string(data), 10, 32)
-		if err != nil {
-			fmt.Errorf("error parsing")
-		}
-		StartGame(conn, int(i))
+		joinRoom(conn, int(roomId), sockets)
 	default:
-		fmt.Errorf("missing command")
+		slog.Error("no valid cmd found")
 	}
 }
 
-type User struct {
-	Conn *Connection
-	Id   int
-	Wpm  int
+// Writes the user id to the client
+func requestUserId(c *Connection) {
+	user := shared.User{
+		Id: c.Id,
+	}
+
+	c.Write(shared.TCPCommand[shared.User]{
+		Command: shared.REQUEST_USER_ID,
+		Data:    user,
+	})
 }
 
-type Room struct {
-	Id      int
-	Users   []User
-	Text    string
-	Leader  int
-	Started bool
-	MyId    int
-}
+var Rooms []shared.MultiplayerRoom
 
-type Rooms []*Room
-
-var rooms Rooms = make(Rooms, 0, 10)
-
-func CreateRoom(conn *Connection) *Room {
-	// Initialise the leader
-	room := &Room{
-		Users: []User{
-			User{
-				Conn: conn,
-				Id:   conn.Id,
-				Wpm:  0,
+func createRoom(c *Connection) {
+	room := shared.MultiplayerRoom{
+		Id: utils.GenCode(),
+		Users: []shared.User{
+			{
+				Id: c.Id,
 			},
 		},
-		Id:      utils.GenCode(),
-		Text:    utils.GenText(),
-		Leader:  conn.Id,
-		Started: false,
-		MyId:    conn.Id,
+		Leader: c.Id,
+		Text:   utils.GenText(),
 	}
 
-	rooms = append(rooms, room)
+	slog.Info("created a room with", "id", room.Id)
 
-	conn.Write(&TCPCommand[Room]{
-		Command: CREATE_ROOM,
-		Data:    *room,
+	Rooms = append(Rooms, room)
+
+	c.Write(shared.TCPCommand[shared.MultiplayerRoom]{
+		Data:    room,
+		Command: shared.CREATE_ROOM,
 	})
-
-	return room
 }
 
-func JoinRoom(conn *Connection, id int) *Room {
-	if len(rooms) == 0 {
+func joinRoom(c *Connection, roomId int, sockets map[int]chan Connection) *shared.MultiplayerRoom {
+	if len(Rooms) == 0 {
 		slog.Info("no rooms found")
-		conn.Write(&TCPCommand[*Room]{
-			Command: ERROR,
-			Data:    nil,
-		})
 		return nil
 	}
-
-	idx := sort.Search(len(rooms), func(i int) bool {
-		return rooms[i].Id == id
+	idx := sort.Search(len(Rooms), func(i int) bool {
+		return Rooms[i].Id == roomId
 	})
-
 	if idx == -1 {
-		conn.Write(&TCPCommand[*Room]{
-			Command: ERROR,
-			Data:    nil,
-		})
-
+		slog.Info("no room found with", "id", roomId)
 		return nil
 	}
-
-	user := User{
-		Id:   conn.Id,
-		Conn: conn,
-		Wpm:  0,
+	newUser := shared.User{
+		Id: c.Id,
 	}
-	rooms[idx].Users = append(rooms[idx].Users, user)
 
-	UserJoined(rooms[idx])
+	Rooms[idx].Users = append(Rooms[idx].Users, newUser)
 
-	conn.Write(&TCPCommand[Room]{
-		Command: JOIN_ROOM,
-		Data: Room{
-			Id:      rooms[idx].Id,
-			Users:   rooms[idx].Users,
-			Text:    rooms[idx].Text,
-			Leader:  rooms[idx].Leader,
-			Started: rooms[idx].Started,
-			MyId:    conn.Id,
-		},
+	slog.Info("Total users in room", "val", Rooms[idx].Users)
+
+	c.Write(shared.TCPCommand[shared.MultiplayerRoom]{
+		Command: shared.JOIN_ROOM,
+		Data:    Rooms[idx],
 	})
-	return rooms[idx]
+
+	// Send a message on the client so a re-render can happen
+	newUserJoined(&Rooms[idx], sockets)
+
+	return &Rooms[idx]
 }
 
-func UserJoined(room *Room) {
-	idx := sort.Search(len(rooms), func(i int) bool {
-		return rooms[i].Id == room.Id
-	})
+func newUserJoined(room *shared.MultiplayerRoom, sockets map[int]chan Connection) {
+	// Finding the user from connections for now due to import cycle.
+	slog.Info("sockets", "len", sockets)
+	for _, user := range room.Users {
+		slog.Info("starting the process to send join notification")
 
-	for _, user := range rooms[idx].Users {
-		slog.Info("writing to clients", "id", user.Id)
+		conn := <-sockets[user.Id]
 
-		user.Conn.Write(&TCPCommand[Room]{
-			Command: NEW_USER_JOINED,
-			Data: Room{
-				Id:      rooms[idx].Id,
-				Users:   rooms[idx].Users,
-				Text:    rooms[idx].Text,
-				Leader:  rooms[idx].Leader,
-				Started: rooms[idx].Started,
-				MyId:    user.Conn.Id,
-			},
-		})
-	}
-}
+		slog.Info("sending new user join to user", "id", user.Id)
 
-func StartGame(c *Connection, id int) *Room {
-	if len(rooms) == 0 {
-		slog.Info("no rooms found")
-		c.Write(&TCPCommand[*Room]{
-			Command: ERROR,
-			Data:    nil,
-		})
-		return nil
-	}
+		slog.Info("conn info", "val", conn)
 
-	idx := sort.Search(len(rooms), func(i int) bool {
-		return rooms[i].Id == id
-	})
-
-	if idx == -1 {
-		c.Write(&TCPCommand[*Room]{
-			Command: ERROR,
-			Data:    nil,
+		conn.Write(&shared.TCPCommand[shared.MultiplayerRoom]{
+			Command: shared.NEW_USER_JOINED,
+			Data:    *room,
 		})
 
-		return nil
 	}
-	for _, user := range rooms[idx].Users {
-		slog.Info("starting game for clients in room", "val", rooms[idx].Id)
-
-		user.Conn.Write(&TCPCommand[Room]{
-			Command: START_GAME,
-			Data:    *rooms[idx],
-		})
-	}
-
-	return rooms[idx]
-}
-
-func EndGame(c *Connection, id int) *Room {
-	if len(rooms) == 0 {
-		slog.Info("no rooms found")
-		c.Write(&TCPCommand[*Room]{
-			Command: ERROR,
-			Data:    nil,
-		})
-		return nil
-	}
-
-	idx := sort.Search(len(rooms), func(i int) bool {
-		return rooms[i].Id == id
-	})
-
-	if idx == -1 {
-		c.Write(&TCPCommand[*Room]{
-			Command: ERROR,
-			Data:    nil,
-		})
-
-		return nil
-	}
-
-	for _, user := range rooms[idx].Users {
-		slog.Info("ending game", "val", rooms[idx].Id)
-
-		user.Conn.Write(&TCPCommand[Room]{
-			Command: START_GAME,
-			Data:    *rooms[idx],
-		})
-	}
-
-	return rooms[idx]
 }

@@ -8,16 +8,14 @@ import (
 )
 
 type Connection struct {
-	conn     net.Conn
-	Id       int
-	previous []byte
+	conn net.Conn
+	Id   int
 }
 
 func NewConnection(conn net.Conn, id int) Connection {
 	return Connection{
-		conn:     conn,
-		Id:       id,
-		previous: []byte{},
+		conn: conn,
+		Id:   id,
 	}
 }
 
@@ -25,15 +23,16 @@ func (c *Connection) Close() {
 	c.conn.Close()
 }
 
-func (c *Connection) ParseMessage(tmp []byte) {
+// Seperate the command rcvd and the data
+func (c *Connection) ParseMessage(tmp []byte, sockets map[int]chan Connection) {
 	if len(tmp) == 0 {
 		slog.Error("rcvd invalid data")
 		return
 	}
 
 	slog.Info("rcvd message", "msg", string(tmp))
-	// Ignore EOL from the data
-	RunCommand(tmp[0], tmp[1:len(tmp)-1], c)
+	// Ignore EOL from the data and run the command
+	RunCommand(tmp[0], tmp[1:len(tmp)-1], c, sockets)
 }
 
 func (c *Connection) Read() (data string, err error) {
@@ -55,6 +54,7 @@ func (c *Connection) Encode(val any) []byte {
 	return bytes
 
 }
+
 func (c *Connection) Decode(val any) any {
 	return val
 }

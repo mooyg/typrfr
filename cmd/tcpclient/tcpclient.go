@@ -41,5 +41,5 @@ func (c *TCPClient) Read() (data []byte, err error) {
 }
 
 func (c *TCPClient) Write(s []byte) (n int, err error) {
-	return c.conn.Write(s)
+	return c.conn.Write(append(s, '\n'))
 }

@@ -1,10 +1,8 @@
 package main
 
-import (
-	"typrfr/cmd/ui"
-)
+import "typrfr/cmd/ui"
 
 func main() {
-	ui := ui.Init()
-	ui.Run()
+	view := ui.Init()
+	view.Run()
 }

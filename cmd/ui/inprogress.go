@@ -3,36 +3,35 @@ package ui
 import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	"typrfr/cmd/processor"
 )
 
-func (ui *UI) showInprogressUI() {
-	status := tview.NewTextView().SetText("TYPRFR")
+func (v *View) showInProgressUI() {
+	v.idx.Clear()
+	renderedText := tview.NewTextView().SetText(v.Game.RenderedText).SetRegions(true).SetDynamicColors(true).SetToggleHighlights(true)
+
 	input := tview.NewTextArea().SetPlaceholder("Start typing...")
-	nav := tview.NewFlex().AddItem(tview.NewBox(), 0, 1, false).AddItem(status, 0, 1, false)
 
-	text := tview.NewTextView().SetText(ui.game.RenderedText).SetRegions(true).SetDynamicColors(true).SetToggleHighlights(true)
+	typr := tview.NewTextView().SetText(`
+___________                     _____________________ 
+\__    ___/__.__._____________  \_   _____/\______   \
+  |    | <   |  |\____ \_  __ \  |    __)   |       _/
+  |    |  \___  ||  |_> >  | \/  |     \    |    |   \
+  |____|  / ____||   __/|__|     \___  /    |____|_  /
+          \/     |__|                \/            \/ 
+`)
+	frame := tview.NewFlex().AddItem(tview.NewBox(), 0, 1, false).AddItem(typr, 0, 2, false)
 
-	content := tview.NewFlex().AddItem(tview.NewFlex().SetDirection(tview.FlexRow).AddItem(text, 0, 1, false).AddItem(input, 0, 3, true), 0, 1, true)
+	container := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	layout := tview.NewFlex().SetDirection(tview.FlexRow).AddItem(nav, 0, 1, false).AddItem(content, 0, 1, true)
+	container.AddItem(renderedText, 0, 2, false).AddItem(input, 0, 2, true)
 
-	ui.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if ui.game.State == processor.IN_PROGRESS {
-			ui.game.ProcessTyping(event)
-			// Somehow now update the text value
-			go func() {
-				text.SetText(ui.game.RenderedText)
-				ui.app.Draw()
-			}()
-			if ui.game.HasFinished() == processor.FINISHED {
-				ui.showFinishedUI()
-			}
+	v.idx.SetDirection(tview.FlexRow).AddItem(frame, 0, 1, false).AddItem(container, 0, 2, true)
 
-		}
+	// Set focus manually because for some weird reason container doesn't get the focus
+	v.App.SetFocus(input)
+
+	input.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		return event
 	})
 
-	layout.SetBorder(true)
-	ui.app.SetRoot(layout, true)
 }

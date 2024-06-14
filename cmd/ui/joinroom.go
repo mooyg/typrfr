@@ -1,28 +1,26 @@
 package ui
 
 import (
-	"typrfr/cmd/processor"
+	"typrfr/cmd/game"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
-func (ui *UI) showJoinRoomUI() {
-
+func (v *View) showJoinRoomUI() {
+	v.idx.Clear()
 	input := tview.NewInputField().SetLabel("Enter the room code")
 
-	layout := tview.NewFlex().AddItem(input, 0, 2, true)
-
 	input.SetDoneFunc(func(key tcell.Key) {
-		game := processor.JoinRoom(input.GetText())
-		if game != nil {
-			ui.game = game
-			ui.showScreen(game.State)
+		v.Game = game.JoinRoom(input.GetText())
+		if v.Game != nil {
 
+			v.initWaitingRoom()
+			v.ShowScreen(v.Game.State)
 		} else {
-			ui.showErrorUI()
 		}
 	})
+	v.idx.AddItem(input, 0, 2, true)
 
-	ui.app.SetRoot(layout, true)
+	v.App.SetFocus(input)
 }
