@@ -27,8 +27,16 @@ func RunCommand(cmd byte, data []byte, conn *Connection, sockets map[int]Connect
 			slog.Error("error parsing room id")
 		}
 		startGame(int(roomId), sockets)
+		// Since we only are passing once a marshalled value from the client we handle it in default case for now
 	default:
-		slog.Error("no valid cmd found")
+		val := append([]byte{cmd}, data...)
+
+		data := utils.Unmarshal[shared.TCPCommand[shared.EndGame]](val)
+
+		slog.Info("some value", "val", data)
+		if data.Command == shared.END_GAME {
+
+		}
 	}
 }
 

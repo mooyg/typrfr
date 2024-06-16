@@ -1,19 +1,125 @@
-2024/06/14 16:51:54 logger.go:24: LogFile : info.log
-2024/06/14 16:52:00 ui.go:73: room updated as new user joined &{387 [{0} {1}] 0 No one saves us but ourselves. No one can and no one may. We ourselves must walk the path. false}
-2024/06/14 16:52:00 ui.go:82: room started
-2024/06/14 16:52:21 game.go:175: highlight error here.
-2024/06/14 16:52:21 game.go:175: highlight error here.
-2024/06/14 16:52:22 game.go:175: highlight error here.
-2024/06/14 16:52:22 game.go:175: highlight error here.
-2024/06/14 16:52:26 game.go:175: highlight error here.
-2024/06/14 16:52:26 game.go:175: highlight error here.
-2024/06/14 16:52:27 game.go:175: highlight error here.
-2024/06/14 16:52:27 game.go:175: highlight error here.
-2024/06/14 16:52:28 game.go:175: highlight error here.
-2024/06/14 16:52:28 game.go:175: highlight error here.
-2024/06/14 16:52:30 game.go:175: highlight error here.
-2024/06/14 16:52:30 game.go:175: highlight error here.
-2024/06/14 16:52:30 game.go:175: highlight error here.
-2024/06/14 16:52:30 game.go:175: highlight error here.
-2024/06/14 16:52:31 game.go:175: highlight error here.
-2024/06/14 16:52:31 game.go:175: highlight error here.
+2024/06/15 16:55:10 logger.go:24: LogFile : info.log
+2024/06/15 16:55:11 ui.go:82: room started
+2024/06/15 16:55:12 game.go:194: G
+2024/06/15 16:55:12 game.go:203: highlight error here.
+2024/06/15 16:55:12 game.go:194: [#ff0000]G[white]
+2024/06/15 16:55:12 game.go:203: highlight error here.
+2024/06/15 16:55:12 game.go:194: [#ff0000]G[white]
+2024/06/15 16:55:12 game.go:203: highlight error here.
+2024/06/15 16:55:12 game.go:194: [#ff0000]G[white]
+2024/06/15 16:55:12 game.go:203: highlight error here.
+2024/06/15 16:55:12 game.go:194: [#ff0000]G[white]
+2024/06/15 16:55:12 game.go:203: highlight error here.
+2024/06/15 16:55:13 game.go:194: [#ff0000]G[white]
+2024/06/15 16:55:13 game.go:203: highlight error here.
+2024/06/15 16:55:13 game.go:194: [#ff0000]G[white]
+2024/06/15 16:55:13 game.go:203: highlight error here.
+2024/06/15 16:55:13 game.go:194: [#ff0000]G[white]
+2024/06/15 16:55:13 game.go:203: highlight error here.
+2024/06/15 16:55:13 game.go:194: [#ff0000]G[white]
+2024/06/15 16:55:13 game.go:194: o
+2024/06/15 16:55:13 game.go:194: o
+2024/06/15 16:55:13 game.go:194: d
+2024/06/15 16:55:13 game.go:194:  
+2024/06/15 16:55:13 game.go:194: t
+2024/06/15 16:55:13 game.go:194: i
+2024/06/15 16:55:14 game.go:194: m
+2024/06/15 16:55:14 game.go:194: b
+2024/06/15 16:55:14 game.go:194: e
+2024/06/15 16:55:14 game.go:194: r
+2024/06/15 16:55:14 game.go:194:  
+2024/06/15 16:55:14 game.go:194: d
+2024/06/15 16:55:14 game.go:194: o
+2024/06/15 16:55:14 game.go:194: e
+2024/06/15 16:55:14 game.go:194: s
+2024/06/15 16:55:14 game.go:203: highlight error here.
+2024/06/15 16:55:14 game.go:194: [#ff0000]s[white]
+2024/06/15 16:55:15 game.go:194:  
+2024/06/15 16:55:15 game.go:203: highlight error here.
+2024/06/15 16:55:15 game.go:194: [#ff0000] [white]
+2024/06/15 16:55:15 game.go:203: highlight error here.
+2024/06/15 16:55:15 game.go:194: [#ff0000] [white]
+2024/06/15 16:55:15 game.go:203: highlight error here.
+2024/06/15 16:55:15 game.go:194: [#ff0000] [white]
+2024/06/15 16:55:15 game.go:194: n
+2024/06/15 16:55:16 game.go:194: o
+2024/06/15 16:55:16 game.go:194: t
+2024/06/15 16:55:16 game.go:194:  
+2024/06/15 16:55:16 game.go:194: g
+2024/06/15 16:55:16 game.go:194: r
+2024/06/15 16:55:16 game.go:194: o
+2024/06/15 16:55:16 game.go:194: w
+2024/06/15 16:55:16 game.go:194:  
+2024/06/15 16:55:16 game.go:194: w
+2024/06/15 16:55:17 game.go:194: i
+2024/06/15 16:55:17 game.go:194: t
+2024/06/15 16:55:17 game.go:194: h
+2024/06/15 16:55:17 game.go:194:  
+2024/06/15 16:55:17 game.go:194: e
+2024/06/15 16:55:17 game.go:194: a
+2024/06/15 16:55:17 game.go:194: s
+2024/06/15 16:55:17 game.go:194: e
+2024/06/15 16:55:17 game.go:194: ;
+2024/06/15 16:55:18 game.go:194:  
+2024/06/15 16:55:18 game.go:194: t
+2024/06/15 16:55:18 game.go:194: h
+2024/06/15 16:55:18 game.go:194: e
+2024/06/15 16:55:18 game.go:194:  
+2024/06/15 16:55:18 game.go:194: s
+2024/06/15 16:55:18 game.go:194: t
+2024/06/15 16:55:18 game.go:194: r
+2024/06/15 16:55:18 game.go:194: o
+2024/06/15 16:55:19 game.go:194: n
+2024/06/15 16:55:19 game.go:194: g
+2024/06/15 16:55:19 game.go:194: e
+2024/06/15 16:55:19 game.go:203: highlight error here.
+2024/06/15 16:55:19 game.go:194: [#ff0000]e[white]
+2024/06/15 16:55:19 game.go:203: highlight error here.
+2024/06/15 16:55:19 game.go:194: [#ff0000]e[white]
+2024/06/15 16:55:19 game.go:203: highlight error here.
+2024/06/15 16:55:19 game.go:194: [#ff0000]e[white]
+2024/06/15 16:55:19 game.go:203: highlight error here.
+2024/06/15 16:55:19 game.go:194: [#ff0000]e[white]
+2024/06/15 16:55:19 game.go:194: r
+2024/06/15 16:55:19 game.go:194:  
+2024/06/15 16:55:19 game.go:194: t
+2024/06/15 16:55:19 game.go:194: h
+2024/06/15 16:55:20 game.go:194: e
+2024/06/15 16:55:20 game.go:194:  
+2024/06/15 16:55:20 game.go:194: w
+2024/06/15 16:55:20 game.go:194: i
+2024/06/15 16:55:20 game.go:194: n
+2024/06/15 16:55:20 game.go:194: d
+2024/06/15 16:55:20 game.go:194: ,
+2024/06/15 16:55:20 game.go:194:  
+2024/06/15 16:55:21 game.go:194: t
+2024/06/15 16:55:21 game.go:194: h
+2024/06/15 16:55:21 game.go:194: e
+2024/06/15 16:55:21 game.go:194:  
+2024/06/15 16:55:21 game.go:194: s
+2024/06/15 16:55:21 game.go:194: t
+2024/06/15 16:55:21 game.go:194: r
+2024/06/15 16:55:21 game.go:194: o
+2024/06/15 16:55:21 game.go:194: n
+2024/06/15 16:55:21 game.go:194: g
+2024/06/15 16:55:22 game.go:194: e
+2024/06/15 16:55:22 game.go:194: r
+2024/06/15 16:55:22 game.go:194:  
+2024/06/15 16:55:22 game.go:194: t
+2024/06/15 16:55:22 game.go:194: h
+2024/06/15 16:55:22 game.go:194: e
+2024/06/15 16:55:22 game.go:194:  
+2024/06/15 16:55:22 game.go:194: t
+2024/06/15 16:55:22 game.go:194: r
+2024/06/15 16:55:23 game.go:194: e
+2024/06/15 16:55:23 game.go:194: e
+2024/06/15 16:55:23 game.go:194: s
+2024/06/15 16:55:23 game.go:203: highlight error here.
+2024/06/15 16:55:23 game.go:194: [#ff0000]s[white]
+2024/06/15 16:55:23 game.go:194: .
+2024/06/15 16:55:23 game.go:203: highlight error here.
+2024/06/15 16:55:23 game.go:194: [#ff0000].[white]
+2024/06/15 16:55:23 game.go:203: highlight error here.
+2024/06/15 16:55:23 game.go:194: [#ff0000].[white]
+2024/06/15 16:55:23 game.go:203: highlight error here.
+2024/06/15 16:55:24 game.go:194: [#ff0000].[white]

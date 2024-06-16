@@ -2,10 +2,12 @@ package game
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"math"
 	"math/rand"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 	"typrfr/cmd/tcpclient"
@@ -165,14 +167,43 @@ func (g *Game) StartGame() *Game {
 	g.timeStarted = time.Now()
 	return g
 }
+func (g *Game) SendEndGameCommand(roomId int) *Game {
+	// Send Speed and roomId
+	input := shared.TCPCommand[shared.EndGame]{
+		Command: shared.END_GAME,
+		Data: shared.EndGame{
+			Speed:  g.Speed,
+			RoomId: roomId,
+			UserId: g.Me.Id,
+		}}
+
+	val, err := json.Marshal(input)
+
+	val = append(val, '\n')
+
+	if err != nil {
+		slog.Error("some error occred")
+	}
+
+	g.ClientConn.Write(val)
+
+	return g
+}
 
 func (g *Game) ProcessTyping(event *tcell.EventKey) {
 
-	if string(event.Rune()) == g.Chars[g.Index] {
+	logger.Log.Println(g.Chars[g.Index])
+	unwrapped := UnwrapChar(g.Chars[g.Index])
+
+	if string(event.Rune()) == unwrapped {
+		g.Chars[g.Index] = unwrapped
+		g.RenderedText = strings.Join(g.Chars, "")
 		g.Index = g.Index + 1
 	} else {
 		// TODO: highlight error
 		logger.Log.Println("highlight error here.")
+		g.Chars[g.Index] = WrapChar(g.Chars[g.Index])
+		g.RenderedText = strings.Join(g.Chars, "")
 	}
 
 	if g.Index == len(g.Chars) {
@@ -191,4 +222,21 @@ func (g *Game) ProcessTyping(event *tcell.EventKey) {
 		return
 	}
 
+}
+
+func WrapChar(c string) string {
+	re := regexp.MustCompile(`\[.*?\]`)
+
+	if len(re.FindAllString(c, -1)) > 0 {
+		return c
+	}
+
+	out := fmt.Sprintf("%s%s%s", "[#ff0000]", c, "[white]")
+
+	return out
+}
+func UnwrapChar(c string) string {
+	r := strings.Replace(c, "[#ff0000]", "", 1)
+	s := strings.Replace(r, "[white]", "", 1)
+	return s
 }

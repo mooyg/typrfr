@@ -37,6 +37,7 @@ func GenText() string {
 func Unmarshal[T any](data []byte) T {
 	var val T
 	err := json.Unmarshal(data, &val)
+
 	if err != nil {
 		slog.Error("some error occured while unmarshalling")
 		os.Exit(2)

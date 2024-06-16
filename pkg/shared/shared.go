@@ -29,3 +29,8 @@ type MultiplayerRoom struct {
 	Text       string
 	InProgress bool
 }
+type EndGame struct {
+	RoomId int
+	Speed  int
+	UserId int
+}

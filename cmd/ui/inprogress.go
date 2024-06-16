@@ -35,7 +35,14 @@ ___________                     _____________________
 	input.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if v.Game.State == game.IN_PROGRESS {
 			v.Game.ProcessTyping(event)
+			go func() {
+				renderedText.SetText(v.Game.RenderedText)
+				v.App.Draw()
+			}()
 			if v.Game.State == game.FINISHED {
+				if v.Game.Room != nil {
+					v.Game.SendEndGameCommand(v.Game.Room.Id)
+				}
 				v.ShowScreen(v.Game.State)
 			}
 
